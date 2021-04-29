@@ -1,0 +1,50 @@
+Problem 1 - a function that returns the sum of two numbers
+
+Define a function with two inputs
+Return the sum of two numbers
+
+START
+
+Define a function with two inputs
+Return the sum of the two numbers
+
+END
+
+Problem 2 - a function that takes an array of strings, and returns a string that is all those strings
+            concatenated together
+
+Define a function with one input(array)
+Set a variable combinedString to an empty string
+Create a loop that iterates through the array
+  On each iteration add the current string to combinedString
+Return combinedString
+
+START
+
+SET function = concatArray with one input
+  SET combinedString = ''
+  WHILE iterator <= length of array
+    SET combinedString + current iteration string
+  PRINT  combinedString
+
+END
+
+Problem 3 - a function that takes and array of integers, and returns a new array with every other element
+
+Define a function with one input(array)
+Set the variable newArray as an empty array
+'for' loop through the array with a 2 increment
+  On each iteration, add the current iteration to new Array
+return the newArray
+
+START
+
+SET function = changeArray with one input(array)
+  SET newArray = []
+  WHILE iterator <= length of array and +2 increment
+    SET newArray + current iteration number
+  PRINT newArray
+
+END
+
+  
