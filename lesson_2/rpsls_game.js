@@ -2,6 +2,13 @@ const readline = require('readline-sync');
 
 const VALID_CHOICES = ['rock', 'paper', 'scissors', 'lizard', 'Spock'];
 const FULL_CHOICES = ['(r)ock', '(p)aper', '(s)cissors', '(l)izard', '(S)pock'];
+const WINNING_COMBOS = {
+  rock: ['scissors', 'lizard'],
+  paper: ['rock', 'Spock'],
+  scissors: ['paper', 'lizard'],
+  Spock: ['scissors', 'rock'],
+  lizard: ['paper', 'Spock'],
+};
 
 let playerScore = 0;
 let computerScore = 0;
@@ -10,19 +17,25 @@ function prompt (message) {
   console.log(`=> ${message}`);
 }
 
+function isValidChoice(choice) {
+  while (!(VALID_CHOICES.includes(choice))) {
+    prompt("That's not a valid choice");
+    choice = readline.question();
+
+    choice = convertUserInput(choice);
+  }
+  return choice;
+}
+
+function computerSelection() {
+  let randomIndex = Math.floor(Math.random() * VALID_CHOICES.length);
+  return VALID_CHOICES[randomIndex];
+}
+
 function displayWinner (choice, computerChoice) {
   prompt(`You chose ${choice}, the computer chose ${computerChoice}`);
 
-  if ((choice === 'rock' && computerChoice === 'scissors') ||
-    (choice === 'rock' && computerChoice === 'lizard') ||
-    (choice === 'paper' && computerChoice === 'rock') ||
-    (choice === 'paper' && computerChoice === 'Spock') ||
-    (choice === 'scissors' && computerChoice === 'paper') ||
-    (choice === 'scissors' && computerChoice === 'lizard') ||
-    (choice === 'Spock' && computerChoice === 'scissors') ||
-    (choice === 'Spock' && computerChoice === 'rock') ||
-    (choice === 'lizard' && computerChoice === 'paper') ||
-    (choice === 'lizard' && computerChoice === 'Spock')) {
+  if (WINNING_COMBOS[choice].includes(computerChoice)) {
     prompt('You won this round!');
     return 'p';
   } else if (choice === computerChoice) {
@@ -79,18 +92,9 @@ while (true) {
   prompt(`Choose one: ${FULL_CHOICES.join(', ')}`);
   let choice = readline.question();
 
-  choice = convertUserInput(choice);
+  choice = isValidChoice(convertUserInput(choice));
 
-
-  while (!VALID_CHOICES.includes(choice)) {
-    prompt("That's not a valid choice");
-    choice = readline.question();
-
-    choice = convertUserInput(choice);
-  }
-
-  let randomIndex = Math.floor(Math.random() * VALID_CHOICES.length);
-  let computerChoice = VALID_CHOICES[randomIndex];
+  let computerChoice = computerSelection();
 
   trackGrandWinner(displayWinner(choice, computerChoice));
 
