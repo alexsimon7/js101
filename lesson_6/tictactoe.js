@@ -4,6 +4,33 @@ const INITIAL_MARKER = ' ';
 const HUMAN_MARKER = 'X';
 const COMPUTER_MARKER = 'O';
 const WIN_MATCH = 5;
+const FIRST_PLAYER = chooseFirstPlayer();
+
+const winningLines = [
+  [1, 2, 3], [4, 5, 6], [7, 8, 9],
+  [1, 4, 7], [2, 5, 8], [3, 6, 9],
+  [1, 5, 9], [3, 5, 7]
+];
+
+function chooseFirstPlayer () {
+  prompt('Who should be first player? (player, computer, choose(random))');
+  let firstPlayer = readline.question().trim();
+
+  while (firstPlayer !== 'player' && firstPlayer !== 'computer' && firstPlayer !== 'choose') {
+    prompt('Invalid entry. Who should be first player? (player, computer, choose(random)');
+    firstPlayer = readline.question().trim();
+  }
+
+  if (firstPlayer === 'choose') {
+    let random = Math.floor(Math.random() * 2);
+    if (random === 0) {
+      firstPlayer = 'player';
+    } else {
+      firstPlayer = 'computer';
+    }
+  }
+  return firstPlayer;
+}
 
 function prompt(message) {
   console.log(`=> ${message}`);
@@ -72,11 +99,59 @@ function playerChosesSquare(board) {
   board[square] = HUMAN_MARKER;
 }
 
-function computerChoosesSquare(board) {
-  let randomIndex = Math.floor(Math.random() * emptySquares(board).length);
+function computerAI (board, marker) {
+  for (let line = 0; line < winningLines.length; line++) {
+    let [ sq1, sq2, sq3 ] = winningLines[line];
 
-  let square = emptySquares(board)[randomIndex];
-  board[square] = COMPUTER_MARKER;
+    if (board[sq1] === marker && board[sq2] === marker &&
+      board[sq3] === INITIAL_MARKER) {
+
+      return winningLines[line][2];
+
+    } else if (board[sq1] === INITIAL_MARKER && board[sq2] === marker &&
+      board[sq3] === marker) {
+
+      return winningLines[line][0];
+
+    } else if (board[sq1] === marker && board[sq2] === INITIAL_MARKER &&
+      board[sq3] === marker) {
+
+      return winningLines[line][1];
+    }
+  }
+
+  return null;
+}
+
+function computerChoosesSquare(board) {
+  if (computerAI(board, COMPUTER_MARKER)) {
+    let square = computerAI(board, COMPUTER_MARKER);
+    board[square] = COMPUTER_MARKER;
+  } else if (computerAI(board, HUMAN_MARKER)) {
+    let square = computerAI(board, HUMAN_MARKER);
+    board[square] = COMPUTER_MARKER;
+  } else if (emptySquares(board).includes('5')) {
+    board['5'] = COMPUTER_MARKER;
+  } else {
+    let randomIndex = Math.floor(Math.random() * emptySquares(board).length);
+
+    let square = emptySquares(board)[randomIndex];
+    board[square] = COMPUTER_MARKER;
+  }
+}
+
+function chooseSquare (board, currentPlayer) {
+  displayBoard(board);
+  if (currentPlayer === 'player') {
+    playerChosesSquare(board);
+  } else if (currentPlayer === 'computer') {
+    computerChoosesSquare(board);
+  }
+}
+
+function alternatePlayer(currentPlayer) {
+  currentPlayer = (currentPlayer === 'player') ? currentPlayer = 'computer' : currentPlayer = 'player';
+  return currentPlayer;
 }
 
 function boardFull(board) {
@@ -88,12 +163,6 @@ function someoneWon(board) {
 }
 
 function detectWinner(board) {
-  let winningLines = [
-    [1, 2, 3], [4, 5, 6], [7, 8, 9],
-    [1, 4, 7], [2, 5, 8], [3, 6, 9],
-    [1, 5, 9], [3, 5, 7]
-  ];
-
   for (let line = 0; line < winningLines.length; line++) {
     let [ sq1, sq2, sq3 ] = winningLines[line];
 
@@ -115,59 +184,74 @@ function detectWinner(board) {
   return null;
 }
 
-while (true) {
-  let playerScore = 0;
-  let computerScore = 0;
+function roundResult(board) {
+  if (someoneWon(board)) {
+    prompt(`${detectWinner(board)} won!`);
+  } else {
+    prompt("It's a tie!");
+  }
+}
 
+function matchScore (playerScore, computerScore) {
+  if (playerScore === WIN_MATCH) {
+    prompt(`The match is over! Player won ${playerScore} to ${computerScore}!`);
+  } else if (computerScore === WIN_MATCH) {
+    prompt(`The match is over! Computer won ${computerScore} to ${playerScore}!`);
+  } else {
+    prompt(`The score is Player: ${playerScore}, Computer: ${computerScore}.`);
+  }
+}
+
+function playAgain() {
+  prompt('Play again? (y or n)');
+  let response = readline.question().toLowerCase();
+
+  while (response !== 'y' && response !== 'n') {
+    prompt('Invalid response. Play again? (y or n)');
+    response = readline.question().toLowerCase();
+  }
+  return response;
+}
+
+function playTurn(board, currentPlayer) {
   while (true) {
 
+    chooseSquare(board, currentPlayer);
+    currentPlayer = alternatePlayer(currentPlayer);
+    if (someoneWon(board) || boardFull(board)) break;
+  }
+}
+
+function startMatch () {
+  let playerScore = 0;
+  let computerScore = 0;
+  playRound(playerScore, computerScore);
+  prompt('Thanks for playing Tic Tac Toe!');
+}
+
+function playRound(playerScore, computerScore) {
+  while (true) {
     let board = initializedBoard();
+    let currentPlayer = FIRST_PLAYER;
 
-    while (true) {
-      displayBoard(board);
-
-      playerChosesSquare(board);
-      if (someoneWon(board) || boardFull(board)) break;
-
-      computerChoosesSquare(board);
-      if (someoneWon(board) || boardFull(board)) break;
-    }
+    playTurn(board, currentPlayer);
 
     displayBoard(board);
 
-    if (detectWinner(board) === 'Player') {
-      playerScore += 1;
-    } else if (detectWinner(board) === 'Computer') {
-      computerScore += 1;
-    }
+    playerScore = (detectWinner(board) === 'Player') ? playerScore += 1 : playerScore;
+    computerScore = (detectWinner(board) === 'Computer') ? computerScore += 1 : computerScore;
 
-    if (someoneWon(board)) {
-      prompt(`${detectWinner(board)} won!`);
-    } else {
-      prompt("It's a tie!");
-    }
+    roundResult(board);
+    matchScore(playerScore, computerScore);
 
-    if (playerScore === WIN_MATCH) {
-      prompt(`The match is over! Player won ${playerScore} to ${computerScore}!`);
-      playerScore = 0;
+    if (playerScore === WIN_MATCH || computerScore === WIN_MATCH) {
       computerScore = 0;
-    } else if (computerScore === WIN_MATCH) {
-      prompt(`The match is over! Computer won ${computerScore} to ${playerScore}!`);
       playerScore = 0;
-      computerScore = 0;
-    } else {
-      prompt(`The score is Player: ${playerScore}, Computer: ${computerScore}.`);
     }
 
-    prompt('Play again? (y or n)');
-    let response = readline.question().toLowerCase()[0];
-
+    let response = playAgain();
     if (response !== 'y') break;
   }
-
-  break;
 }
 
-prompt('Thanks for playing Tic Tac Toe!');
-
-
+startMatch();
